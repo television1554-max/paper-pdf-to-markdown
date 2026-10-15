@@ -74,10 +74,10 @@ def main():
         raise SystemExit(f"找不到 {py}，環境建立可能失敗。")
 
     step(2, total, "安裝 PyTorch（GPU 版，約 2.5 GB）")
-    run([py, "-m", "pip", "install", *TORCH])
+    run([py, "-m", "pip", "install", "--no-warn-script-location", *TORCH])
 
     step(3, total, "安裝 Nougat 與相關套件")
-    run([py, "-m", "pip", "install", "-r", HERE / "requirements.txt"])
+    run([py, "-m", "pip", "install", "--no-warn-script-location", "-r", HERE / "requirements.txt"])
 
     step(4, total, "檢查顯示卡")
     r = subprocess.run([str(py), "-c",

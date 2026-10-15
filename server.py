@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import queue
+import socket
 import re
 import sys
 import threading
@@ -411,6 +412,17 @@ class Handler(BaseHTTPRequestHandler):
             self._send(404, {"error": "not found"})
 
 
+class ExclusiveServer(ThreadingHTTPServer):
+    """獨占連接埠。Windows 預設允許多個程式綁同一個連接埠，會讓請求隨機送到不同的執行個體。"""
+    allow_reuse_address = False
+    daemon_threads = True
+
+    def server_bind(self):
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 def detect_gpu():
     try:
         import torch
@@ -436,7 +448,7 @@ def main():
     server = None
     for port in range(PORT, PORT + 20):
         try:
-            server = ThreadingHTTPServer((HOST, port), Handler)
+            server = ExclusiveServer((HOST, port), Handler)
             break
         except OSError:
             if is_this_tool(port):
